@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Eventify</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--bg-color), var(--primary-light));
+        }
+        .login-box {
+            width: 100%;
+            max-width: 450px;
+            padding: 40px;
+            border-radius: 20px;
+        }
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .login-header h1 {
+            color: var(--primary-color);
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-box glass">
+        <div class="login-header">
+            <h1>🎟️ Eventify</h1>
+            <p id="auth-title">Welcome back! Please login.</p>
+        </div>
+        
+        <form id="auth-form-page">
+            <div class="form-group d-none" id="name-group">
+                <label>Full Name</label>
+                <input type="text" id="auth-name" class="form-control">
+            </div>
+            <div class="form-group">
+                <label>Email Address</label>
+                <input type="email" id="auth-email" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="auth-pass" class="form-control" required>
+            </div>
+            <button type="submit" class="btn btn-primary mt-2" style="width: 100%" id="auth-submit">Login</button>
+        </form>
+        <p class="text-center mt-2" style="font-size: 0.9rem;">
+            <a href="#" onclick="toggleAuthModePage(event)" id="auth-toggle">Don't have an account? Register</a>
+        </p>
+    </div>
+
+    <div id="notification" class="notification"></div>
+
+    <script src="js/app.js"></script>
+    <script>
+        // Redirect if already logged in
+        if (currentUser) {
+            window.location.href = 'index.html';
+        }
+        
+        let isLoginPageMode = true;
+
+        function toggleAuthModePage(e) {
+            e.preventDefault();
+            isLoginPageMode = !isLoginPageMode;
+            document.getElementById('auth-title').innerText = isLoginPageMode ? 'Welcome back! Please login.' : 'Create a new account.';
+            document.getElementById('auth-toggle').innerText = isLoginPageMode ? "Don't have an account? Register" : "Already have an account? Login";
+            document.getElementById('auth-submit').innerText = isLoginPageMode ? 'Login' : 'Register';
+            
+            if (isLoginPageMode) {
+                document.getElementById('name-group').classList.add('d-none');
+            } else {
+                document.getElementById('name-group').classList.remove('d-none');
+            }
+        }
+
+        const authFormPage = document.getElementById('auth-form-page');
+        if (authFormPage) {
+            authFormPage.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const payload = {
+                    email: document.getElementById('auth-email').value,
+                    password: document.getElementById('auth-pass').value
+                };
+
+                let action = 'login';
+                if (!isLoginPageMode) {
+                    action = 'register';
+                    payload.name = document.getElementById('auth-name').value;
+                }
+
+                try {
+                    const res = await fetch(`${API_URL}/auth.php?action=${action}`, {
+                        method: 'POST',
+                        body: JSON.stringify(payload),
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    const data = await res.json();
+                    
+                    if (data.error) throw new Error(data.error);
+                    
+                    showNotification(data.message);
+                    
+                    if (action === 'login') {
+                        currentUser = data.user;
+                        localStorage.setItem('eventify_user', JSON.stringify(currentUser));
+                        setTimeout(() => {
+                            window.location.href = 'index.html';
+                        }, 1000);
+                    } else {
+                        // Switch back to login after register
+                        toggleAuthModePage(new Event('click'));
+                    }
+                } catch (error) {
+                    showNotification(error.message, 'error');
+                }
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eventify - Ticketing Platform</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <nav class="container" style="display: flex; justify-content: space-between; align-items: center;">
+        <a href="index.html" class="logo">🎟️ Eventify</a>
+        <div class="nav-links" id="nav-links" style="display: flex; gap: 20px; align-items: center;">
+            <a href="index.html">Events</a>
+            <a href="add-event.html" style="color: var(--primary-color); font-weight: 600;">+ Post Event</a>
+            <a href="login.html" id="login-btn" class="btn btn-outline" style="padding: 5px 15px;">Login</a>
+        </div>
+    </nav>
+
+    <header class="hero container">
+        <h1>Discover & Book Top Events</h1>
+        <p>Your one-stop destination for music, tech, and cultural events happening around you. Get your tickets now before they run out!</p>
+        <div class="search-bar mt-2">
+            <input type="text" id="searchInput" class="form-control" placeholder="Search events by title or venue..." style="max-width: 500px; display: inline-block;">
+        </div>
+    </header>
+
+    <main class="container mb-2">
+        <h2 class="mb-2">Upcoming Events</h2>
+        <div class="grid" id="events-grid">
+            <!-- Events injected by JS -->
+            <p>Loading events...</p>
+        </div>
+    </main>
+
+    <!-- Login/Register Modal (if still used elsewhere) -->
+    <!-- Kept just in case, though we have a dedicated page now -->
+
+    <!-- Realistic Payment Gateway Modal -->
+    <div class="modal-overlay" id="payment-modal">
+        <div class="modal-content glass" style="max-width: 450px;">
+            <div class="modal-header">
+                <div>
+                    <h3 id="payment-title" style="margin-bottom: 5px;">Secure Checkout</h3>
+                    <p style="font-size: 0.9rem; color: var(--text-light);" id="payment-subtitle">Complete your booking</p>
+                </div>
+                <button class="close-btn" onclick="closePaymentModal()">&times;</button>
+            </div>
+            
+            <form id="payment-form">
+                <input type="hidden" id="pay-event-id">
+                <div class="form-group">
+                    <label>Amount to Pay</label>
+                    <div class="form-control" style="font-size: 1.5rem; font-weight: 700; color: var(--primary-color);" id="pay-amount">₹0.00</div>
+                </div>
+
+                <!-- Payment Method Selection -->
+                <div style="display: flex; gap: 10px; margin-top: 15px; margin-bottom: 15px;">
+                    <label style="flex: 1; padding: 10px; border: 1px solid var(--primary-color); border-radius: 8px; text-align: center; cursor: pointer; background: rgba(108, 92, 231, 0.1);" id="lbl-method-card">
+                        <input type="radio" name="pay_method" value="card" checked onchange="togglePayMethod()" style="margin-right: 5px;"> 💳 Card
+                    </label>
+                    <label style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 8px; text-align: center; cursor: pointer;" id="lbl-method-upi">
+                        <input type="radio" name="pay_method" value="upi" onchange="togglePayMethod()" style="margin-right: 5px;"> 📱 UPI / GPay
+                    </label>
+                </div>
+
+                <!-- Card Details -->
+                <div id="method-card">
+                    <div class="form-group mt-2">
+                        <label>Cardholder Name</label>
+                        <input type="text" class="form-control" placeholder="John Doe" id="card-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Card Number</label>
+                        <input type="text" class="form-control" placeholder="0000 0000 0000 0000" maxlength="19" id="card-number" required>
+                    </div>
+                    <div style="display: flex; gap: 15px;">
+                        <div class="form-group" style="flex: 1;">
+                            <label>Expiry Date</label>
+                            <input type="text" class="form-control" placeholder="MM/YY" maxlength="5" id="card-exp" required>
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label>CVV</label>
+                            <input type="password" class="form-control" placeholder="123" maxlength="4" id="card-cvv" required>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- UPI Details -->
+                <div id="method-upi" class="d-none">
+                    <div class="form-group mt-2">
+                        <label>Enter UPI ID (GPay / PhonePe / Paytm)</label>
+                        <input type="text" class="form-control" placeholder="mobilenumber@upi or name@okicici" id="upi-id">
+                    </div>
+                    <p style="font-size: 0.85rem; color: var(--text-light); margin-top: 10px;">
+                        A payment request will be sent to your UPI app. Please approve it to complete the booking.
+                    </p>
+                </div>
+                
+                <button type="submit" class="btn btn-primary mt-2" style="width: 100%; display: flex; justify-content: center; gap: 10px; align-items: center;" id="pay-submit-btn">
+                    <span>Pay Now</span>
+                </button>
+                <div style="text-align: center; margin-top: 15px; font-size: 0.8rem; color: var(--text-light);">
+                    🔒 Payments are securely encrypted
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Notification Container -->
+    <div id="notification" class="notification"></div>
+
+    <script src="js/app.js"></script>
+    <script>
+        function togglePayMethod() {
+            const method = document.querySelector('input[name="pay_method"]:checked').value;
+            const cardDiv = document.getElementById('method-card');
+            const upiDiv = document.getElementById('method-upi');
+            
+            // Labels styling
+            const lblCard = document.getElementById('lbl-method-card');
+            const lblUpi = document.getElementById('lbl-method-upi');
+
+            if (method === 'card') {
+                cardDiv.classList.remove('d-none');
+                upiDiv.classList.add('d-none');
+                
+                // Re-add required tags
+                document.getElementById('card-name').required = true;
+                document.getElementById('card-number').required = true;
+                document.getElementById('card-exp').required = true;
+                document.getElementById('card-cvv').required = true;
+                document.getElementById('upi-id').required = false;
+
+                lblCard.style.borderColor = 'var(--primary-color)';
+                lblCard.style.background = 'rgba(108, 92, 231, 0.1)';
+                lblUpi.style.borderColor = '#ddd';
+                lblUpi.style.background = 'transparent';
+            } else {
+                cardDiv.classList.add('d-none');
+                upiDiv.classList.remove('d-none');
+
+                // Remove card required tags
+                document.getElementById('card-name').required = false;
+                document.getElementById('card-number').required = false;
+                document.getElementById('card-exp').required = false;
+                document.getElementById('card-cvv').required = false;
+                document.getElementById('upi-id').required = true;
+
+                lblUpi.style.borderColor = 'var(--primary-color)';
+                lblUpi.style.background = 'rgba(108, 92, 231, 0.1)';
+                lblCard.style.borderColor = '#ddd';
+                lblCard.style.background = 'transparent';
+            }
+        }
+    </script>
+</body>
+</html>

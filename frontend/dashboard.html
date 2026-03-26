@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Eventify</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .admin-only { display: none; }
+    </style>
+</head>
+<body>
+
+    <nav style="padding: 15px 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;" class="container">
+        <a href="index.html" class="logo">🎟️ Eventify</a>
+        <div class="nav-links" style="display: flex; gap: 20px; align-items: center;">
+            <a href="index.html" style="text-decoration: none; color: var(--text-color); font-weight: 500;">Browse Events</a>
+            <span id="user-greeting" style="font-weight: 500; color: var(--primary-color);">Welcome</span>
+            <button onclick="logout()" class="btn btn-outline" style="padding: 5px 15px;">Logout</button>
+        </div>
+    </nav>
+
+    <div class="dashboard-layout">
+        <aside class="sidebar glass" style="border-radius: 0; border: none; border-right: 1px solid #ddd;">
+            <div class="sidebar-nav">
+                <a href="#overview" class="active" onclick="switchTab('overview')">Overview</a>
+                <a href="#my-bookings" onclick="switchTab('my-bookings')" id="nav-bookings">My Bookings</a>
+                <a href="#manage-events" onclick="switchTab('manage-events')" class="admin-only" id="nav-manage">Manage Events</a>
+                <a href="#analytics" onclick="switchTab('analytics')" class="admin-only" id="nav-analytics">Analytics</a>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <!-- Overview Tab -->
+            <div id="tab-overview" class="tab-pane">
+                <h2>Dashboard Overview</h2>
+                <div class="grid mt-2" id="dashboard-stats">
+                    <!-- Stats injected by JS -->
+                </div>
+            </div>
+
+            <!-- My Bookings Tab -->
+            <div id="tab-my-bookings" class="tab-pane d-none">
+                <h2>My Ticket Bookings</h2>
+                <div class="grid mt-2" id="bookings-list">
+                    <!-- Bookings injected by JS -->
+                </div>
+            </div>
+
+            <!-- Manage Events Tab (Admin) -->
+            <div id="tab-manage-events" class="tab-pane d-none admin-only">
+                <div class="flex-between">
+                    <h2>Manage Events</h2>
+                    <button class="btn btn-primary" onclick="openEventModal()">+ Create Event</button>
+                </div>
+                
+                <table style="width: 100%; border-collapse: collapse; margin-top: 20px;" class="glass">
+                    <thead>
+                        <tr style="border-bottom: 2px solid #eee; text-align: left;">
+                            <th style="padding: 15px;">Title</th>
+                            <th>Date & Time</th>
+                            <th>Venue</th>
+                            <th>Price</th>
+                            <th>Seats (Avail)</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-events-list">
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Analytics Tab (Admin) -->
+            <div id="tab-analytics" class="tab-pane d-none admin-only">
+                <h2>Platform Analytics</h2>
+                <div class="grid mt-2">
+                    <div class="card glass">
+                        <h3 class="card-title">Total Revenue</h3>
+                        <div class="card-price" id="total-revenue">₹0.00</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Create/Edit Event Modal -->
+    <div class="modal-overlay" id="event-modal">
+        <div class="modal-content glass" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3 id="event-modal-title">Create Event</h3>
+                <button class="close-btn" onclick="closeEventModal()">&times;</button>
+            </div>
+            
+            <form id="event-form">
+                <input type="hidden" id="event-id">
+                <div class="form-group">
+                    <label>Event Title</label>
+                    <input type="text" id="event-title" class="form-control" required>
+                </div>
+                <div style="display: flex; gap: 15px;">
+                    <div class="form-group" style="flex: 1;">
+                        <label>Date</label>
+                        <input type="date" id="event-date" class="form-control" required>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>Time</label>
+                        <input type="time" id="event-time" class="form-control" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Venue</label>
+                    <input type="text" id="event-venue" class="form-control" required>
+                </div>
+                <div style="display: flex; gap: 15px;">
+                    <div class="form-group" style="flex: 1;">
+                        <label>Ticket Price (₹)</label>
+                        <input type="number" step="0.01" id="event-price" class="form-control" required>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>Total Seats</label>
+                        <input type="number" id="event-seats" class="form-control" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="event-desc" class="form-control" rows="3"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%">Save Event</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="notification" class="notification"></div>
+
+    <script src="js/app.js"></script>
+    <script>
+        // Init dashboard specific logic
+        document.addEventListener('DOMContentLoaded', () => {
+            initDashboard();
+        });
+    </script>
+</body>
+</html>
